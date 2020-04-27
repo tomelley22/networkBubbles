@@ -15,6 +15,8 @@ dots = []
 maxSpeed = 20
 
 lines = []
+threshold = 300
+ratio = 2/3
 
 lastFrameTime = 0;
 
@@ -35,9 +37,13 @@ def UpdateDots(dots, lastTime):
             for otherDot in dots:
                 if otherDot not in drawnDots:
                     distance = dot.getCenter().findDistance(otherDot.getCenter())
-                    if (distance < 100):
+                    if (distance < threshold):
                         l = Line(dot.getCenter(), otherDot.getCenter())
-                        l.setFill("blue")
+                        l.setFill("gray")
+                        if (distance < threshold * ratio):
+                            l.setFill("white")
+                            if (distance < threshold * ratio * ratio):
+                                l.setFill("blue")
                         l.draw(window)
                         lines.append(l)
                         drawnDots.append(dot)
@@ -52,10 +58,11 @@ def UpdateSingleDot(dot):
 
 def __main__():
     window.autoflush = 0
+    window.setBackground("black")
 
 
     i = 1
-    while i < 100:
+    while i < 50:
         dots.append(Dot(GetRandomVector(borderSize, window.width-borderSize, borderSize, window.height-borderSize), GetRandomVector(maxSpeed*-1,maxSpeed, maxSpeed*-1,maxSpeed)))
         i += 1
 
