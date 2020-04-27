@@ -1,6 +1,5 @@
 from graphics import *
 import random
-import threading
 import time
 
 
