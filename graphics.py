@@ -1,4 +1,5 @@
 import math
+import time
 
 # graphics.py
 """Simple object oriented graphics library  
@@ -564,6 +565,10 @@ class Vector(GraphicsObject):
         self.y += other.y
         return self
 
+    def __eq__(self, other):
+
+        return self.x == other.x and self.y == other.y
+
     def scale(self, scalar):
         self.x *= scalar
         self.y *= scalar
@@ -686,6 +691,9 @@ class Line(_BBox):
     def __repr__(self):
         return "Line({}, {})".format(str(self.p1), str(self.p2))
 
+    def commonEndpoints(self, other):
+        return self.p1 == other.p1 or self.p1 == other.p2 or self.p2 == other.p1 or self.p2 == other.p2
+
     def clone(self):
         other = Line(self.p1, self.p2)
         other.config = self.config.copy()
@@ -702,6 +710,86 @@ class Line(_BBox):
         if not option in ["first","last","both","none"]:
             raise GraphicsError(BAD_OPTION)
         self._reconfig("arrow", option)
+
+    def intersectLine(self, other, window):
+        return self.intersectPoints(other.p1, other.p2, window)
+
+    def intersectPoints(self, p1, p2, window):
+        if (self.p1.x == min(self.p1.x, self.p2.x)):
+            selfX1 = self.p1.x
+            selfY1 = self.p1.y
+            selfX2 = self.p2.x
+            selfY2 = self.p2.y
+            
+            i = self.p1.x
+            j = self.p1.y
+            yBound = self.p2.y
+        else:
+            selfX1 = self.p2.x
+            selfY1 = self.p2.y
+            selfX2 = self.p1.x
+            selfY2 = self.p1.y
+
+            i = self.p2.x
+            j = self.p2.y
+            yBound = self.p1.y
+        if (p1.x == min(p1.x, p2.x)):
+            otherX1 = p1.x
+            otherY1 = p1.y
+            otherX2 = p2.x
+            otherY2 = p2.y
+        else:
+            otherX1 = p2.x
+            otherY1 = p2.y
+            otherX2 = p1.x
+            otherY2 = p1.y
+
+
+        if (selfX1 < otherX1 < selfX2 or selfX1 < otherX2 < selfX2 or (min(selfY1,selfY2) < otherY1 < max(selfY1, selfY2) or min(selfY1,selfY2) < otherY2 < max(selfY1, selfY2))) or (otherX1 < selfX1 < otherX2 or otherX1 < selfX2 < otherX2 or (min(otherY1,otherY2) < selfY1 < max(otherY1, otherY2) or min(otherY1,otherY2) < selfY2 < max(otherY1, otherY2))):
+
+            try:
+                selfSlope = (selfY2 - selfY1) / (selfX2 - selfX1)
+            except:
+                selfSlope = math.sqrt(sys.maxsize)
+            selfYInt = selfY1 - (selfX1 * selfSlope)
+
+            try:
+                otherSlope = (otherY2 - otherY1) / (otherX2 - otherX1)
+            except:
+                otherSlope = math.sqrt(sys.maxsize)
+            otherYInt = otherY1 - (otherX1 * otherSlope)
+
+            #debug circle
+            """c = Circle(Vector(i,j), 5)
+            c.draw(window)
+            window.update()"""
+
+            while i < selfX2:
+                plugIn = otherSlope * i + otherYInt
+                """s = Circle(Vector(i, j), 2)
+                s.setFill("blue")
+                s.draw(window)
+
+                o = Circle(Vector(i, plugIn),2)
+                o.setFill("green")
+                o.draw(window)
+
+                window.update()"""
+
+                if (plugIn - 2 < j < plugIn + 2):
+                    """window.setBackground("red")
+                    window.update()
+                    time.sleep(0.001)
+                    window.setBackground("white")"""
+                    return 1
+                i += 1
+                j += selfSlope
+
+                """s.undraw()
+                o.undraw()
+            c.undraw()
+            window.update()"""
+        return 0
         
 
 class Polygon(GraphicsObject):
