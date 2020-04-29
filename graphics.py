@@ -576,6 +576,13 @@ class Vector(GraphicsObject):
 
     def findDistance(self, other):
         return ((self.x - other.x)**2 + (self.y-other.y)**2)**.5
+
+    def _pointBetween(self, p1, p2):
+        if (min(p1.x, p2.x) < self.x < max(p1.x, p2.x)):
+            return 1
+        if (min(p1.y, p2.y) < self.y < max(p1.y, p2.y)):
+            return 1
+        return 0
         
     def _draw(self, canvas, options):
         x,y = canvas.toScreen(self.x,self.y)
@@ -711,84 +718,101 @@ class Line(_BBox):
             raise GraphicsError(BAD_OPTION)
         self._reconfig("arrow", option)
 
-    def intersectLine(self, other, window):
-        return self.intersectPoints(other.p1, other.p2, window)
+    def _linesWithinBounds(self, other):
+        if (self.p1._pointBetween(other.p1, other.p2) or self.p2._pointBetween(other.p1, other.p2)):
+            return 1
 
-    def intersectPoints(self, p1, p2, window):
-        if (self.p1.x == min(self.p1.x, self.p2.x)):
-            selfX1 = self.p1.x
-            selfY1 = self.p1.y
-            selfX2 = self.p2.x
-            selfY2 = self.p2.y
-            
-            i = self.p1.x
-            j = self.p1.y
-            yBound = self.p2.y
-        else:
-            selfX1 = self.p2.x
-            selfY1 = self.p2.y
-            selfX2 = self.p1.x
-            selfY2 = self.p1.y
+        return 0
 
-            i = self.p2.x
-            j = self.p2.y
-            yBound = self.p1.y
-        if (p1.x == min(p1.x, p2.x)):
-            otherX1 = p1.x
-            otherY1 = p1.y
-            otherX2 = p2.x
-            otherY2 = p2.y
-        else:
-            otherX1 = p2.x
-            otherY1 = p2.y
-            otherX2 = p1.x
-            otherY2 = p1.y
+    def intersectLine(self, other, granularity, window):
 
-
-        if (selfX1 < otherX1 < selfX2 or selfX1 < otherX2 < selfX2 or (min(selfY1,selfY2) < otherY1 < max(selfY1, selfY2) or min(selfY1,selfY2) < otherY2 < max(selfY1, selfY2))) or (otherX1 < selfX1 < otherX2 or otherX1 < selfX2 < otherX2 or (min(otherY1,otherY2) < selfY1 < max(otherY1, otherY2) or min(otherY1,otherY2) < selfY2 < max(otherY1, otherY2))):
+        if (self._linesWithinBounds(other)):
 
             try:
-                selfSlope = (selfY2 - selfY1) / (selfX2 - selfX1)
+                selfSlope = (self.p2.y - self.p1.y) / (self.p2.x - self.p1.x)
             except:
                 selfSlope = math.sqrt(sys.maxsize)
-            selfYInt = selfY1 - (selfX1 * selfSlope)
+            selfYInt = self.p1.y - (self.p1.x * selfSlope)
 
             try:
-                otherSlope = (otherY2 - otherY1) / (otherX2 - otherX1)
+                otherSlope = (other.p2.y - other.p1.y) / (other.p2.x - other.p1.x)
             except:
                 otherSlope = math.sqrt(sys.maxsize)
-            otherYInt = otherY1 - (otherX1 * otherSlope)
+            otherYInt = other.p1.y - (other.p1.x * otherSlope)
 
-            #debug circle
-            """c = Circle(Vector(i,j), 5)
-            c.draw(window)
-            window.update()"""
+            lowerXBound = max(min(self.p1.x, self.p2.x), min(other.p1.x, other.p2.x))
+            upperXBound = min(max(self.p1.x, self.p2.x), max(other.p1.x, other.p2.x))
 
-            while i < selfX2:
-                plugIn = otherSlope * i + otherYInt
-                """s = Circle(Vector(i, j), 2)
+            lowerYBound = max(min(self.p1.y, self.p2.y), min(other.p1.y, other.p2.y))
+            upperYBound = min(max(self.p1.y, self.p2.y), max(other.p1.y, other.p2.y))
+
+            #binary search?
+            testX = (self.p1.x + self.p2.x) / 2.0
+            selfValue = selfSlope * testX + selfYInt
+            otherValue = otherSlope * testX + otherYInt
+            upperLast = upperXBound
+            lowerLast = lowerXBound
+            while ( math.trunc(lowerLast) != math.trunc(testX) != math.trunc(upperLast) and (lowerXBound + 1 < testX < upperXBound - 1 or (lowerYBound < max(selfValue, otherValue) and min(selfValue, otherValue) < upperYBound))):
+
+
+
+                if (otherValue - granularity < selfValue < otherValue + granularity):
+                    """s = Circle(Vector(testX, selfValue), 5)
+                    o= Circle(Vector(testX, otherValue), 3)
+                    s.setFill("red")
+                    s.draw(window)
+                    o.setFill("yellow")
+                    o.draw(window)
+                    window.update()
+                    s.undraw()
+                    o.undraw()"""
+                    return 1
+                _ = testX
+                if (selfValue < otherValue):
+                    lowerLast = testX
+                    testX = ((upperLast + testX) / 2.0)
+                elif (selfValue > otherValue):
+                    upperLast = testX
+                    testX = ((lowerLast + testX) / 2.0)
+
+                selfValue = (selfSlope * testX + selfYInt)
+                otherValue = (otherSlope * testX + otherYInt)
+
+                """o.undraw()
+                s.undraw()"""
+            return 0
+
+
+            testX = lowerXBound
+            selfValue = selfSlope * testX + selfYInt
+            otherValue = otherSlope * testX + otherYInt
+
+
+            #here we search along one line until we intersect the other (linear)
+            while testX < upperXBound:
+                """s = Circle(Vector(i, selfValue), 2)
                 s.setFill("blue")
                 s.draw(window)
 
-                o = Circle(Vector(i, plugIn),2)
+                o = Circle(Vector(i, otherValue),2)
                 o.setFill("green")
                 o.draw(window)
 
-                window.update()"""
+                window.update()
 
-                if (plugIn - 2 < j < plugIn + 2):
+                s.undraw()
+                o.undraw()"""
+
+                if (otherValue - otherSlope * granularity < selfValue < otherValue + otherSlope * granularity):
                     """window.setBackground("red")
                     window.update()
                     time.sleep(0.001)
                     window.setBackground("white")"""
                     return 1
-                i += 1
-                j += selfSlope
-
-                """s.undraw()
-                o.undraw()
-            c.undraw()
-            window.update()"""
+                testX += granularity
+                selfValue += granularity * selfSlope
+                otherValue += granularity * otherSlope
+            """window.update()"""
         return 0
         
 
@@ -1055,9 +1079,9 @@ class Image(GraphicsObject):
 
         """
         
-        path, name = os.path.split(filename)
+        name = os.path.split(filename)[1]
         ext = name.split(".")[-1]
-        self.img.write( filename, format=ext)
+        self.img.write(filename, format=ext)
 
         
 def color_rgb(r,g,b):
