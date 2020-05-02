@@ -752,12 +752,10 @@ class Line(_BBox):
             otherValue = otherSlope * testX + otherYInt
             upperLast = upperXBound
             lowerLast = lowerXBound
-            while ( math.trunc(lowerLast) != math.trunc(testX) != math.trunc(upperLast) and (lowerXBound + 1 < testX < upperXBound - 1 or (lowerYBound < max(selfValue, otherValue) and min(selfValue, otherValue) < upperYBound))):
+            while 0: #(math.trunc(lowerLast) != math.trunc(testX) != math.trunc(upperLast) and (lowerXBound + 1 < testX < upperXBound - 1 or (lowerYBound < max(selfValue, otherValue) and min(selfValue, otherValue) < upperYBound))):
 
-
-
-                if (otherValue - granularity < selfValue < otherValue + granularity):
-                    """s = Circle(Vector(testX, selfValue), 5)
+                if (otherValue - otherSlope * granularity < selfValue < otherValue + otherSlope * granularity):
+                    s = Circle(Vector(testX, selfValue), 5)
                     o= Circle(Vector(testX, otherValue), 3)
                     s.setFill("red")
                     s.draw(window)
@@ -765,7 +763,7 @@ class Line(_BBox):
                     o.draw(window)
                     window.update()
                     s.undraw()
-                    o.undraw()"""
+                    o.undraw()
                     return 1
                 _ = testX
                 if (selfValue < otherValue):
@@ -780,7 +778,7 @@ class Line(_BBox):
 
                 """o.undraw()
                 s.undraw()"""
-            return 0
+            #return 0
 
 
             testX = lowerXBound
@@ -790,18 +788,18 @@ class Line(_BBox):
 
             #here we search along one line until we intersect the other (linear)
             while testX < upperXBound:
-                """s = Circle(Vector(i, selfValue), 2)
+                s = Circle(Vector(testX, selfValue), 2)
                 s.setFill("blue")
                 s.draw(window)
 
-                o = Circle(Vector(i, otherValue),2)
+                o = Circle(Vector(testX, otherValue),2)
                 o.setFill("green")
                 o.draw(window)
 
                 window.update()
 
                 s.undraw()
-                o.undraw()"""
+                o.undraw()
 
                 if (otherValue - otherSlope * granularity < selfValue < otherValue + otherSlope * granularity):
                     """window.setBackground("red")

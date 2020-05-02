@@ -10,7 +10,7 @@ backgroundColor = "black"
 dots = []
 dotColor="red"
 dotSize = 0
-numberOfDots=10
+numberOfDots=50
 maxSpeed = 500
 drawDots = 0
 
