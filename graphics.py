@@ -481,7 +481,7 @@ class GraphicsObject:
         window. Raises an error if attempt made to draw an object that
         is already visible."""
 
-        if self.canvas and not self.canvas.isClosed(): raise GraphicsError(OBJ_ALREADY_DRAWN)
+        if self.canvas and not self.canvas.isClosed(): return #raise GraphicsError(OBJ_ALREADY_DRAWN)
         if graphwin.isClosed(): raise GraphicsError("Can't draw to closed window")
         self.canvas = graphwin
         self.id = self._draw(graphwin, self.config)
@@ -694,6 +694,7 @@ class Line(_BBox):
         _BBox.__init__(self, p1, p2, ["arrow","fill","width"])
         self.setFill(DEFAULT_CONFIG['outline'])
         self.setOutline = self.setFill
+        self.toBeDrawn = 0
 
     def __repr__(self):
         return "Line({}, {})".format(str(self.p1), str(self.p2))
@@ -717,6 +718,9 @@ class Line(_BBox):
         if not option in ["first","last","both","none"]:
             raise GraphicsError(BAD_OPTION)
         self._reconfig("arrow", option)
+
+    def getLength(self):
+        return ((self.p1.x - self.p2.x)**2 + (self.p1.y - self.p2.y)**2)**0.5
 
     def _linesWithinBounds(self, other):
         if (self.p1._pointBetween(other.p1, other.p2) or self.p2._pointBetween(other.p1, other.p2)):
@@ -752,18 +756,18 @@ class Line(_BBox):
             otherValue = otherSlope * testX + otherYInt
             upperLast = upperXBound
             lowerLast = lowerXBound
-            while 0: #(math.trunc(lowerLast) != math.trunc(testX) != math.trunc(upperLast) and (lowerXBound + 1 < testX < upperXBound - 1 or (lowerYBound < max(selfValue, otherValue) and min(selfValue, otherValue) < upperYBound))):
+            while (math.trunc(lowerLast) != math.trunc(testX) != math.trunc(upperLast) and (lowerXBound + 1 < testX < upperXBound - 1 or (lowerYBound < max(selfValue, otherValue) and min(selfValue, otherValue) < upperYBound))):
 
                 if (otherValue - otherSlope * granularity < selfValue < otherValue + otherSlope * granularity):
-                    s = Circle(Vector(testX, selfValue), 5)
-                    o= Circle(Vector(testX, otherValue), 3)
-                    s.setFill("red")
-                    s.draw(window)
-                    o.setFill("yellow")
-                    o.draw(window)
-                    window.update()
-                    s.undraw()
-                    o.undraw()
+                    #s = Circle(Vector(testX, selfValue), 5)
+                    #o= Circle(Vector(testX, otherValue), 3)
+                    #s.setFill("red")
+                    #s.draw(window)
+                    #o.setFill("yellow")
+                    #o.draw(window)
+                    #window.update()
+                    #s.undraw()
+                    #o.undraw()
                     return 1
                 _ = testX
                 if (selfValue < otherValue):
@@ -776,9 +780,9 @@ class Line(_BBox):
                 selfValue = (selfSlope * testX + selfYInt)
                 otherValue = (otherSlope * testX + otherYInt)
 
-                """o.undraw()
-                s.undraw()"""
-            #return 0
+                #o.undraw()
+                #s.undraw()
+            return 0
 
 
             testX = lowerXBound
@@ -787,31 +791,31 @@ class Line(_BBox):
 
 
             #here we search along one line until we intersect the other (linear)
-            while testX < upperXBound:
-                s = Circle(Vector(testX, selfValue), 2)
-                s.setFill("blue")
-                s.draw(window)
+        #    while testX < upperXBound:
+        #        s = Circle(Vector(testX, selfValue), 2)
+        #        s.setFill("blue")
+        #        s.draw(window)
 
-                o = Circle(Vector(testX, otherValue),2)
-                o.setFill("green")
-                o.draw(window)
+        #        o = Circle(Vector(testX, otherValue),2)
+        #        o.setFill("green")
+        #        o.draw(window)
 
-                window.update()
+        #        window.update()
 
-                s.undraw()
-                o.undraw()
+        #        s.undraw()
+        #        o.undraw()
 
-                if (otherValue - otherSlope * granularity < selfValue < otherValue + otherSlope * granularity):
-                    """window.setBackground("red")
-                    window.update()
-                    time.sleep(0.001)
-                    window.setBackground("white")"""
-                    return 1
-                testX += granularity
-                selfValue += granularity * selfSlope
-                otherValue += granularity * otherSlope
-            """window.update()"""
-        return 0
+        #        if (otherValue - otherSlope * granularity < selfValue < otherValue + otherSlope * granularity):
+        #            """window.setBackground("red")
+        #            window.update()
+        #            time.sleep(0.001)
+        #            window.setBackground("white")"""
+        #            return 1
+        #        testX += granularity
+        #        selfValue += granularity * selfSlope
+        #        otherValue += granularity * otherSlope
+        #    """window.update()"""
+        #return 0
         
 
 class Polygon(GraphicsObject):
